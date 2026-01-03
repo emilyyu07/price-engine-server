@@ -1,0 +1,10 @@
+import type { Request, Response } from "express";
+
+export const getHealth = (req: Request, res: Response) => {
+  res.status(200).json({
+    status: "UP",
+    timestamp: new Date().toISOString(),
+    //how long server has been running
+    uptime: process.uptime(),
+  });
+};
