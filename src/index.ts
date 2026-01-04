@@ -2,9 +2,13 @@
 import express from "express"; //import express
 import healthRoutes from "./routes/health.routes.js";
 import { ingestFakeStoreProducts } from "./workers/ingestor.js";
+import { initScheduledJobs } from "./config/scheduler.js";
 
 const app = express(); //initialize express application
 const PORT = process.env.PORT || 3001;
+
+// initialize scheduled jobs
+initScheduledJobs();
 
 //middleware
 app.use(express.json());
@@ -39,3 +43,8 @@ app.post("/ingest", async (req, res) => {
 import productRoutes from "./routes/product.routes.js";
 app.use("/api/products", productRoutes);
 //--------------------------------------------------------------
+
+/*
+01/04 - finished ingestion cron job
+
+*/

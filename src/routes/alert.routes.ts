@@ -3,6 +3,7 @@ import prisma from "../config/prisma.js";
 
 const router = Router();
 
+//create endpoint to set a price alert
 router.post("/", async (req, res) => {
   try {
     const { email, productId, targetPrice } = req.body;
