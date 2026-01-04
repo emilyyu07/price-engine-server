@@ -23,7 +23,7 @@ app.listen(PORT, () => {
 //health connection ends----------------------------------------
 
 //database connection begins------------------------------------
-app.post("/ingest", async (req, res) => {
+app.post("/ingest", async (_req, res) => {
   try {
     await ingestFakeStoreProducts();
     res.status(200).json({ message: "Ingestion completed successfully" });
