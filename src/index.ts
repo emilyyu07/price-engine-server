@@ -33,5 +33,9 @@ app.post("/ingest", async (req, res) => {
     res.status(500).json({ error: "Ingestion failed", details: error });
   }
 });
-
 //database connection ends--------------------------------------
+
+//mount product routes------------------------------------------
+import productRoutes from "./routes/product.routes.js";
+app.use("/api/products", productRoutes);
+//--------------------------------------------------------------
