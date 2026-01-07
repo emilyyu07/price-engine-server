@@ -4,7 +4,7 @@ const router = Router();
 import prisma from "../config/prisma.js";
 
 // get all products (browsing page)
-router.get("/", async (req, res) => {
+router.get("/", async (_req, res) => {
   try {
     const products = await prisma.product.findMany({
       include: {

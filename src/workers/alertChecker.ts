@@ -1,4 +1,19 @@
 import prisma from "../config/prisma.js";
+import { sendPriceDrop } from "../config/mail.js";
+
+// export const checkAndNotifyAlerts = async (
+//   productId: string,
+//   currentPrice: number
+// ) => {
+//   //find all alerts where current price falls below target and an alert hasnt been sent yet
+//   const activeAlerts = await prisma.priceAlert.findMany({
+//     where: {
+//       productId: productId,
+//       targetPrice: { gte: currentPrice },
+//       //isTriggered:false
+//     },
+//   });
+// };
 
 export const checkAlerts = async (productId: string, currentPrice: number) => {
   //find all active alerts for specified product where targetPrice is >= current (targetPrice is met)
@@ -36,4 +51,8 @@ export const checkAlerts = async (productId: string, currentPrice: number) => {
 /*
 01/04 - important note: remember to replace the console log with an actual email or text
 alerting service later on (console.log() is for testing purposes)
+*/
+
+/*
+01/06 - working on integrating nodemailer to send email alerts
 */
