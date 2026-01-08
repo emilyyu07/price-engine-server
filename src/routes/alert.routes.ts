@@ -1,7 +1,22 @@
 import { Router } from "express";
 import prisma from "../config/prisma.js";
+import { Prisma } from "@prisma/client";
 
 const router = Router();
+
+//get alerts for specific user
+router.get("/:email", async (req, res, next) => {
+  const { email } = req.params;
+  try {
+    const alerts = await prisma.priceAlert.findMany({
+      where: { user: { email: email } },
+      include: { product: true },
+    });
+    res.json(alerts);
+  } catch (error) {
+    next(error);
+  }
+});
 
 //create endpoint to set a price alert
 router.post("/", async (req, res) => {
@@ -20,7 +35,8 @@ router.post("/", async (req, res) => {
       data: {
         userId: user.id,
         productId: productId,
-        targetPrice: targetPrice,
+        targetPrice: new Prisma.Decimal(targetPrice),
+        isActive: true,
       },
     });
 
@@ -29,3 +45,5 @@ router.post("/", async (req, res) => {
     res.status(500).json({ error: "Failed to set alert", details: error });
   }
 });
+
+export default router;

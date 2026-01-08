@@ -1,52 +1,104 @@
 import prisma from "../config/prisma.js";
 import { sendPriceDrop } from "../config/mail.js";
 
-// export const checkAndNotifyAlerts = async (
-//   productId: string,
-//   currentPrice: number
-// ) => {
-//   //find all alerts where current price falls below target and an alert hasnt been sent yet
-//   const activeAlerts = await prisma.priceAlert.findMany({
-//     where: {
-//       productId: productId,
-//       targetPrice: { gte: currentPrice },
-//       //isTriggered:false
-//     },
-//   });
-// };
-
 export const checkAlerts = async (productId: string, currentPrice: number) => {
-  //find all active alerts for specified product where targetPrice is >= current (targetPrice is met)
-  const alerts = await prisma.priceAlert.findMany({
+  //find all alerts where current price falls below target and an alert has yet to be sent
+  const eligibleAlerts = await prisma.priceAlert.findMany({
     where: {
       productId: productId,
-      //check if target is greater than or equal to curent
       targetPrice: { gte: currentPrice },
       isActive: true,
     },
-    include: {
-      user: true,
-    },
+    include: { product: true, user: true },
   });
 
-  for (const alert of alerts) {
-    //REPLACE LOG WITH ACTUAL EMAIL SENDING SERVICE LATER
-    console.log(
-      `ALERT: Sending email to ${alert.user.email} for product ${productId}.`
-    );
+  for (const alert of eligibleAlerts) {
+    //only notify if price is a NEW low or the first time notifying
+    const hasBeenNotified = alert.lastNotifiedPrice !== null;
+    const isNewDrop =
+      !hasBeenNotified || currentPrice < Number(alert.lastNotifiedPrice);
 
-    //create notification record in database
-    await prisma.notification.create({
-      data: {
-        userId: alert.userId,
-        alertId: alert.id,
-        type: "PRICE_DROP",
-        title: "Price Drop Detected!",
-        message: `Great news! A product you're watching has dropped to $${currentPrice}.`,
-      },
-    });
+    if (isNewDrop) {
+      try {
+        console.log(
+          `Match found for ${alert.userId}! Sending email alert for ${alert.product}`
+        );
+
+        //send email using nodemailer
+        await sendPriceDrop(
+          alert.user.email,
+          alert.product.title,
+          currentPrice
+        );
+
+        //update PriceAlert and Notification tables in a single transaction (simultaneous)
+        await prisma.$transaction([
+          //update alert table
+          prisma.priceAlert.update({
+            where: { id: alert.id },
+            data: {
+              lastNotifiedPrice: currentPrice,
+              lastNotifiedAt: new Date(),
+            },
+          }),
+
+          //log in nofification table
+          prisma.notification.create({
+            data: {
+              userId: alert.userId,
+              alertId: alert.id,
+              type: "PRICE_DROP",
+              title: "Price Drop Detected!",
+              message: `Great news! The price for ${alert.product.title} dropped to $${currentPrice}.`,
+            },
+          }),
+        ]);
+
+        console.log(`Notification cycle complete for alert ${alert.id}.`);
+      } catch (error) {
+        console.error(`Failed to send alert for ${alert.id}:`, error);
+      }
+    } else {
+      console.log(
+        `Skipping alert for ${alert.user.email}: Already notified of this price or lower.`
+      );
+    }
   }
 };
+
+//DELETE LATER ONCE ALERT ROUTING IS CONFIRMED TO WORK SUCCESSFULLY
+// export const checkAlerts = async (productId: string, currentPrice: number) => {
+//   //find all active alerts for specified product where targetPrice is >= current (targetPrice is met)
+//   const alerts = await prisma.priceAlert.findMany({
+//     where: {
+//       productId: productId,
+//       //check if target is greater than or equal to curent
+//       targetPrice: { gte: currentPrice },
+//       isActive: true,
+//     },
+//     include: {
+//       user: true,
+//     },
+//   });
+
+//   for (const alert of alerts) {
+//     //REPLACE LOG WITH ACTUAL EMAIL SENDING SERVICE LATER
+//     console.log(
+//       `ALERT: Sending email to ${alert.user.email} for product ${productId}.`
+//     );
+
+//     //create notification record in database
+//     await prisma.notification.create({
+//       data: {
+//         userId: alert.userId,
+//         alertId: alert.id,
+//         type: "PRICE_DROP",
+//         title: "Price Drop Detected!",
+//         message: `Great news! A product you're watching has dropped to $${currentPrice}.`,
+//       },
+//     });
+//   }
+// };
 
 /*
 01/04 - important note: remember to replace the console log with an actual email or text

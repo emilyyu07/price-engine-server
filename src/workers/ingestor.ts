@@ -89,7 +89,7 @@ export const ingestFakeStoreProducts = async () => {
           },
         });
 
-        //trigger price alert check (after db is upserted)
+        //trigger price alert check and notify (after db is upserted)
         await checkAlerts(product.id, newPrice);
 
         console.log(`Updated price: ${item.title} is now ${item.price}`);

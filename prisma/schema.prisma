@@ -92,14 +92,16 @@ model User {
 }
 
 model PriceAlert {
-  id                  String   @id @default(uuid())
+  id                  String    @id @default(uuid())
   userId              String
   productId           String
-  targetPrice         Decimal? @db.Decimal(10, 2)
-  percentageThreshold Decimal? @db.Decimal(5, 2) // e.g., 10.00 for 10% drop
-  isActive            Boolean  @default(true)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  targetPrice         Decimal?  @db.Decimal(10, 2)
+  percentageThreshold Decimal?  @db.Decimal(5, 2) // e.g., 10.00 for 10% drop
+  isActive            Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  lastNotifiedPrice   Decimal?  @db.Decimal(10, 2)
+  lastNotifiedAt      DateTime?
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   product       Product        @relation(fields: [productId], references: [id], onDelete: Cascade)

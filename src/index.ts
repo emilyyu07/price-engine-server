@@ -1,8 +1,11 @@
-//health connection begins--------------------------------
-import express from "express"; //import express
-import healthRoutes from "./routes/health.routes.js";
+import express from "express";
+import cors from "cors";
 import { ingestFakeStoreProducts } from "./workers/ingestor.js";
 import { initScheduledJobs } from "./config/scheduler.js";
+import healthRoutes from "./routes/health.routes.js";
+import productRoutes from "./routes/product.routes.js";
+import alertRoutes from "./routes/alert.routes.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express(); //initialize express application
 const PORT = process.env.PORT || 3001;
@@ -10,17 +13,22 @@ const PORT = process.env.PORT || 3001;
 // initialize scheduled jobs
 initScheduledJobs();
 
-//middleware
+//global middleware
 app.use(express.json());
+app.use(cors());
 
 //routes
 app.use("/health", healthRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/alerts", alertRoutes);
 
-//log if server is running
+//global error handling
+app.use(errorHandler);
+
+//log if server is running (health connection)
 app.listen(PORT, () => {
   console.log(`Server successfully running at http://localhost:${PORT}/health`);
 });
-//health connection ends----------------------------------------
 
 //database connection begins------------------------------------
 app.post("/ingest", async (_req, res) => {
@@ -39,12 +47,20 @@ app.post("/ingest", async (_req, res) => {
 });
 //database connection ends--------------------------------------
 
-//mount product routes------------------------------------------
-import productRoutes from "./routes/product.routes.js";
-app.use("/api/products", productRoutes);
-//--------------------------------------------------------------
-
 /*
+Mini update log
 01/04 - finished ingestion cron job
+01/07 - register alert routing and email notifications
+        added a global error handler (ensures a clean JSON error will be 
+        sent to frontend/React with upcoming integration)
 
+
+Next Steps:
+- manual API testing via Postman
+- trigger nodecron and nodemailer (trigger a price drop manually, ingestor, etc.)
+- ensure app.use(cors()) is active for seamless integration with React
+
+
+Optional Add-in (add in automated testing? with Jest?)
+--> unit test for checkAlerts using Jest 
 */
