@@ -1,10 +1,9 @@
 import { Router } from "express";
-
-const router = Router();
 import prisma from "../config/prisma.js";
+const router = Router();
 
 // get all products (browsing page)
-router.get("/", async (_req, res) => {
+router.get("/", async (_req, res, next) => {
   try {
     const products = await prisma.product.findMany({
       include: {
@@ -22,12 +21,12 @@ router.get("/", async (_req, res) => {
     });
     res.json(products);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch products", details: error });
+    next(error);
   }
 });
 
 //get a single product with price history (chart page)
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
     const product = await prisma.product.findUnique({
@@ -52,9 +51,7 @@ router.get("/:id", async (req, res) => {
     //if valid, return product data
     res.json(product);
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Failed to fetch product details", details: error });
+    next(error);
   }
 });
 

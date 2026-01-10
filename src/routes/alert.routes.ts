@@ -1,5 +1,6 @@
 import { Router } from "express";
 import prisma from "../config/prisma.js";
+//need Prisma.Decimal for target price
 import { Prisma } from "@prisma/client";
 
 const router = Router();
@@ -19,7 +20,7 @@ router.get("/:email", async (req, res, next) => {
 });
 
 //create endpoint to set a price alert
-router.post("/", async (req, res) => {
+router.post("/", async (req, res, next) => {
   try {
     const { email, productId, targetPrice } = req.body;
 
@@ -42,7 +43,7 @@ router.post("/", async (req, res) => {
 
     res.status(201).json({ success: true, message: "Alert set!", alert });
   } catch (error) {
-    res.status(500).json({ error: "Failed to set alert", details: error });
+    next(error);
   }
 });
 

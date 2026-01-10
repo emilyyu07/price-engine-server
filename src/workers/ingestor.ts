@@ -1,5 +1,4 @@
 import axios from "axios";
-
 import prisma from "../config/prisma.js";
 import { checkAlerts } from "./alertChecker.js";
 
@@ -46,7 +45,7 @@ export const ingestFakeStoreProducts = async () => {
       const currentListing = await prisma.productListing.findUnique({
         where: {
           productId_retailerId: {
-            productId: products.id,
+            productId: product.id,
             retailerId: retailer.id,
           },
         },
@@ -62,7 +61,7 @@ export const ingestFakeStoreProducts = async () => {
         await prisma.productListing.upsert({
           where: {
             productId_retailerId: {
-              productId: products.id,
+              productId: product.id,
               retailerId: retailer.id,
             },
           },
@@ -77,7 +76,7 @@ export const ingestFakeStoreProducts = async () => {
             },
           },
           create: {
-            productId: products.id,
+            productId: product.id,
             retailerId: retailer.id,
             currentPrice: newPrice,
             url: `https://fakestoreapi.com/products/${item.id}`,
