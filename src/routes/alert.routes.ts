@@ -1,11 +1,20 @@
 import { Router } from "express";
 import prisma from "../config/prisma.js";
-//need Prisma.Decimal for target price
 import { Prisma } from "@prisma/client";
 
 const router = Router();
 
-//get alerts for specific user
+// GET alerts for all users
+router.get("/", async (_req, res, next) => {
+  try {
+    const allAlerts = await prisma.priceAlert.findMany();
+    res.json(allAlerts);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET alerts for SPECIFIC user
 router.get("/:email", async (req, res, next) => {
   const { email } = req.params;
   try {
@@ -19,7 +28,7 @@ router.get("/:email", async (req, res, next) => {
   }
 });
 
-//create endpoint to set a price alert
+// CREATE alerts for user
 router.post("/", async (req, res, next) => {
   try {
     const { email, productId, targetPrice } = req.body;
@@ -31,7 +40,7 @@ router.post("/", async (req, res, next) => {
       create: { email, name: email.split("@")[0] },
     });
 
-    //create the price alert
+    //define the price alert
     const alert = await prisma.priceAlert.create({
       data: {
         userId: user.id,

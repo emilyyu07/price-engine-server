@@ -2,11 +2,14 @@ import prisma from "../config/prisma.js";
 import { sendPriceDrop } from "../config/mail.js";
 
 export const checkAlerts = async (productId: string, currentPrice: number) => {
+  //convert price to decimal
+  const nCurrentPrice = Number(currentPrice);
+
   //find all alerts where current price falls below target and an alert has yet to be sent
   const eligibleAlerts = await prisma.priceAlert.findMany({
     where: {
       productId: productId,
-      targetPrice: { gte: currentPrice },
+      targetPrice: { gte: nCurrentPrice },
       isActive: true,
     },
     include: { product: true, user: true },
@@ -14,9 +17,10 @@ export const checkAlerts = async (productId: string, currentPrice: number) => {
 
   for (const alert of eligibleAlerts) {
     //only notify if price is a NEW low or the first time notifying
-    const hasBeenNotified = alert.lastNotifiedPrice !== null;
-    const isNewDrop =
-      !hasBeenNotified || currentPrice < Number(alert.lastNotifiedPrice);
+    const lastPrice = alert.lastNotifiedPrice
+      ? Number(alert.lastNotifiedPrice)
+      : null;
+    const isNewDrop = lastPrice == null || nCurrentPrice < lastPrice;
 
     if (isNewDrop) {
       try {

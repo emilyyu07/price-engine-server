@@ -26,7 +26,7 @@ app.use("/api/ingest", ingestRoutes);
 //global error handling
 app.use(errorHandler);
 
-//log if server is running (health connection)
+//log if server is running
 app.listen(PORT, () => {
   console.log(`Server successfully running at http://localhost:${PORT}/health`);
 });
@@ -40,10 +40,10 @@ Mini update log
 01/09 - testing endpoints
       --> bug with alert endpoints (some error, might be with nodemailer? figure out tmr), other endpoints successful
 
+01/10 - all endpoints working!, manually triggered ingestion and price drops
+
 
 Next Steps:
-
-- trigger nodecron and nodemailer (trigger a price drop manually, ingestor, etc.)
 - ensure app.use(cors()) is active for seamless integration with React
 
 
